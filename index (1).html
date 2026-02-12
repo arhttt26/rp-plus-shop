@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RP-PLUS SHOP</title>
+
+<style>
+:root{
+  --bg:#0f0f0f;
+  --card:#1c1c1c;
+  --accent:#00ff88;
+  --text:#ffffff;
+}
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  padding:15px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  background:#000;
+  box-shadow:0 0 15px var(--accent);
+}
+button{
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  font-weight:bold;
+  cursor:pointer;
+  margin:3px;
+}
+.container{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+  padding:20px;
+}
+.card{
+  background:var(--card);
+  padding:15px;
+  border-radius:12px;
+  text-align:center;
+  box-shadow:0 0 10px #00ff8844;
+}
+.icon{
+  font-size:50px;
+  margin-bottom:10px;
+}
+input{
+  padding:6px;
+  border-radius:6px;
+  border:none;
+  margin:5px;
+}
+</style>
+</head>
+
+<body>
+
+<header>🔥 RP-PLUS SHOP 🔥</header>
+
+<div class="container" id="products"></div>
+
+<div style="padding:20px;">
+  <h3>🧺 سبد خرید</h3>
+  <div id="cart"></div>
+  <div id="total">جمع: 0 سکه</div>
+  <button onclick="checkout()">ثبت خرید</button>
+  <div id="orderResult" style="margin-top:15px;"></div>
+</div>
+
+<script>
+
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbym8kE8fpshax03zN6Z05XZSfdllcpctPEfgqNWCr35iyHFFnHYv-zQ2N8iSCFNgtYo/exec";
+
+const products = [
+["🍯","عسل",80],["🍳","نیمرو",18],["🍳","املت",54],["🍲","سوپ",54],
+["🎂","کیک تولد",269],["🍰","کیک",25],["🧁","کیک کاکائویی",25],
+["🍵","دمنوش",60],["🍕","پیتزا",100],["🍃","برگ",5],["🐤","جوجه",30],
+["🐓","مرغ",50],["🪨","سنگ",3],["💧","آب",3],["📘","کتاب",10],
+["🌭","هات داگ",45],["⛽","بنزین",45],["💎","مروارید",1900],
+["🥚","تخم طلا",1500],["📿","گردنبند",5000],["🍞","نان",15],
+["🥪","نان ساندویچ",15],["🌾","گندم",2],["🥛","شیر",6],
+["🥚","تخم مرغ",6],["🔴","یاقوت",1500],["🍎","سیب",10],
+["🍅","گوجه",7],["🥬","کاهو",7],["🥕","هویج",7]
+];
+
+let cart = {};
+let total = 0;
+
+function renderProducts(){
+  const container=document.getElementById("products");
+  products.forEach(p=>{
+    container.innerHTML+=`
+    <div class="card">
+      <div class="icon">${p[0]}</div>
+      <h4>${p[1]}</h4>
+      <p>${p[2]} سکه</p>
+      <button onclick="add('${p[1]}',${p[2]})">خرید</button>
+    </div>`;
+  });
+}
+
+function add(name,price){
+  if(!cart[name]) cart[name]=0;
+  cart[name]++;
+  total+=price;
+  updateCart();
+}
+
+function updateCart(){
+  let html="";
+  for(let i in cart){
+    html+=cart[i]+" × "+i+"<br>";
+  }
+  document.getElementById("cart").innerHTML=html;
+  document.getElementById("total").innerText="جمع: "+total+" سکه";
+}
+
+async function checkout(){
+  if(Object.keys(cart).length===0){
+    alert("سبد خالی است");
+    return;
+  }
+
+  const code="RPPLUS-"+Date.now();
+
+  try{
+
+    await fetch(WEB_APP_URL,{
+      method:"POST",
+      body:JSON.stringify({
+        code:code,
+        items:JSON.stringify(cart),
+        total:total
+      })
+    });
+
+    document.getElementById("orderResult").innerHTML=`
+      <div style="background:#1a1a1a;padding:10px;border-radius:8px;">
+        <b>کد رهگیری شما:</b><br>
+        <input type="text" value="${code}" readonly style="width:70%;">
+        <button onclick="copyText('${code}')">کپی</button>
+        <br><br>
+        <small>: در روبیکا ارسال کنید به</small><br>
+        <input type="text" value="@NINJA_100" readonly style="width:70%;margin-top:5px;">
+        <button onclick="copyText('@NINJA_100')">کپی آیدی</button>
+      </div>`;
+
+    cart={};
+    total=0;
+    updateCart();
+
+  }catch(err){
+    alert("خطا در ارسال سفارش ❌");
+    console.log(err);
+  }
+}
+
+function copyText(text){
+  const textarea=document.createElement('textarea');
+  textarea.value=text;
+  textarea.style.position='fixed';
+  textarea.style.top='-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+  alert('کپی شد ✅');
+}
+
+renderProducts();
+
+</script>
+
+</body>
+</html>
